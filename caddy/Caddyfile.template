@@ -1,0 +1,55 @@
+{
+	# Some clients do not send SNI when connecting directly to an IP.
+	# Replace YOUR_SERVER_IP with your actual server IP or domain (e.g., music.example.com, 192.168.1.100)
+	default_sni YOUR_SERVER_IP
+}
+
+https://YOUR_SERVER_IP {
+	encode gzip
+
+	# Use Caddy's internal CA for HTTPS on an IP address.
+	# This avoids ACME failures on raw IPs, but clients must trust this CA.
+	tls internal
+
+	# Block downloads for guest users before requests are proxied.
+	@guestDownload {
+		path /rest/download.view
+		header Cookie *guest*
+	}
+	respond @guestDownload 403 "Downloads are not allowed for guest users"
+
+	# Serve the registration page only on the root URL.
+	@rootOnly path /
+	handle @rootOnly {
+		root * /usr/share/caddy
+		try_files /index.html
+		file_server
+	}
+
+	@registrationApi path /register /register/*
+	handle @registrationApi {
+		reverse_proxy navidrome-registration:3000
+	}
+
+	# Explicit Navidrome routes.
+	handle /rest/* {
+		reverse_proxy navidrome:4533
+	}
+
+	handle /app/* {
+		reverse_proxy navidrome:4533
+	}
+
+	handle /static/* {
+		reverse_proxy navidrome:4533
+	}
+
+	handle /favicon.ico {
+		reverse_proxy navidrome:4533
+	}
+
+	# Fallback for other Navidrome endpoints ("etc.").
+	handle {
+		reverse_proxy navidrome:4533
+	}
+}

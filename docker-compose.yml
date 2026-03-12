@@ -1,0 +1,50 @@
+services:
+  registration:
+    build: ./registration
+    container_name: navidrome-registration
+    restart: unless-stopped
+    environment:
+      ADMIN_USERNAME: ${ADMIN_USERNAME}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      ND_API_URL: http://navidrome:4533/rest
+      DB_PATH: /data/navidrome.db  # Path to database inside container
+    volumes:
+      - "./docker/data:/data"      # Mount database volume
+
+
+  navidrome:
+    image: deluan/navidrome
+    container_name: navidrome
+    restart: unless-stopped
+    environment:
+      ND_SCANSCHEDULE: ${ND_SCANSCHEDULE:-1h}
+      ND_LOGLEVEL: ${ND_LOGLEVEL:-info}
+      ND_ENABLEEXTERNALSERVICES: ${ND_ENABLEEXTERNALSERVICES:-"false"}
+      ND_ENABLEDOWNLOADS: ${ND_ENABLEDOWNLOADS:-true}
+      ND_ENABLESHARING: ${ND_ENABLESHARING:-false}
+      ND_MUSICFOLDER: /music
+      ND_DATAFOLDER: /data
+    volumes:
+      - "./docker/data:/data"
+      - "/home/ubuntu/music:/music:ro"
+
+  caddy:
+    build:
+      context: ./caddy
+      dockerfile: Dockerfile
+    container_name: caddy
+    restart: unless-stopped
+    environment:
+      SERVER_ADDRESS: ${SERVER_ADDRESS:-}
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./caddy_root:/usr/share/caddy
+      - ./caddy_certs:/data/caddy/pki/authorities/local
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:
