@@ -1,16 +1,7 @@
-{
-	# Some clients do not send SNI when connecting directly to an IP.
-	# Replace YOUR_SERVER_IP with your actual server IP or domain (e.g., music.example.com, 192.168.1.100)
-	default_sni YOUR_SERVER_IP
-}
-
-https://YOUR_SERVER_IP {
+https://{$SERVER_ADDRESS} {
 	encode gzip
-
-	# Use Caddy's internal CA for HTTPS on an IP address.
-	# This avoids ACME failures on raw IPs, but clients must trust this CA.
-	tls internal
-
+	{$TLS_CONFIG}
+	
 	# Block downloads for guest users before requests are proxied.
 	@guestDownload {
 		path /rest/download.view

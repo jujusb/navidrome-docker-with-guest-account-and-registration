@@ -11,9 +11,8 @@ services:
     volumes:
       - "./docker/data:/data"      # Mount database volume
 
-
   navidrome:
-    image: deluan/navidrome
+    image: deluan/navidrome:latest
     container_name: navidrome
     restart: unless-stopped
     environment:
@@ -21,30 +20,10 @@ services:
       ND_LOGLEVEL: ${ND_LOGLEVEL:-info}
       ND_ENABLEEXTERNALSERVICES: ${ND_ENABLEEXTERNALSERVICES:-"false"}
       ND_ENABLEDOWNLOADS: ${ND_ENABLEDOWNLOADS:-true}
-      ND_ENABLESHARING: ${ND_ENABLESHARING:-false}
+      ND_ENABLESHARING: ${ND_ENABLESHARING:-true}
+      ND_BASEURL: "https://${SERVER_ADDRESS:-}"  # Base URL for Caddy reverse proxy
       ND_MUSICFOLDER: /music
       ND_DATAFOLDER: /data
     volumes:
       - "./docker/data:/data"
       - "/home/ubuntu/music:/music:ro"
-
-  caddy:
-    build:
-      context: ./caddy
-      dockerfile: Dockerfile
-    container_name: caddy
-    restart: unless-stopped
-    environment:
-      SERVER_ADDRESS: ${SERVER_ADDRESS:-}
-    ports:
-      - "${HTTP_PORT:-80}:80"
-      - "${HTTPS_PORT:-443}:443"
-    volumes:
-      - ./caddy_root:/usr/share/caddy
-      - ./caddy_certs:/data/caddy/pki/authorities/local
-      - caddy_data:/data
-      - caddy_config:/config
-
-volumes:
-  caddy_data:
-  caddy_config:
