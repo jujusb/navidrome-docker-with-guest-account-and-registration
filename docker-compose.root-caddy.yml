@@ -1,6 +1,6 @@
 networks:
   caddy_net:
-    driver: bridge
+    external: true
 
 services:
   caddy:
