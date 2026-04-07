@@ -32,6 +32,6 @@ services:
       ND_DATAFOLDER: /data
     volumes:
       - "./docker/data:/data"
-      - "/home/ubuntu/music:/music:ro"
+      - "${MUSIC_DATA_PATH:-/home/ubuntu/music}:/music:ro"
     networks:
       - navidrome_internal_net
