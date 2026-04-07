@@ -1,3 +1,7 @@
+networks:
+  navidrome_internal_net:
+    external: true
+    
 services:
   registration:
     build: ./registration
@@ -10,6 +14,8 @@ services:
       DB_PATH: /data/navidrome.db  # Path to database inside container
     volumes:
       - "./docker/data:/data"      # Mount database volume
+    networks:
+      - navidrome_internal_net
 
   navidrome:
     image: deluan/navidrome:latest
@@ -21,9 +27,11 @@ services:
       ND_ENABLEEXTERNALSERVICES: ${ND_ENABLEEXTERNALSERVICES:-"false"}
       ND_ENABLEDOWNLOADS: ${ND_ENABLEDOWNLOADS:-true}
       ND_ENABLESHARING: ${ND_ENABLESHARING:-true}
-      ND_BASEURL: "https://${SERVER_ADDRESS:-}"  # Base URL for Caddy reverse proxy
+      ND_BASEURL: "https://${MUSIC_SERVER_ADDRESS:-}"  # Base URL for Caddy reverse proxy
       ND_MUSICFOLDER: /music
       ND_DATAFOLDER: /data
     volumes:
       - "./docker/data:/data"
       - "/home/ubuntu/music:/music:ro"
+    networks:
+      - navidrome_internal_net

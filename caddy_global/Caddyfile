@@ -1,0 +1,17 @@
+(common) {
+	encode gzip zstd
+}
+
+(common_tls) {
+	{$TLS_CONFIG}
+}
+
+https://{$MUSIC_SERVER_ADDRESS} {
+	import common
+	import common_tls
+
+	reverse_proxy caddy-navidrome:80  {
+		header_up Host {host}
+		header_up X-Real-IP {remote_host}
+	}
+}

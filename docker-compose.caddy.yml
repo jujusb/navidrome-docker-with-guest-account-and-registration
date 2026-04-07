@@ -1,20 +1,23 @@
+networks:
+  caddy_net:
+    external: true
+  navidrome_internal_net:
+    external: true
+    
 services:
-  caddy:
+  caddy-navidrome:
     image: caddy:2
-    container_name: caddy
+    container_name: caddy-navidrome
     restart: unless-stopped
-    environment:
-      SERVER_ADDRESS: ${SERVER_ADDRESS:-}
-    entrypoint: /bin/sh -c "caddy run --config /my_config/Caddyfile --adapter caddyfile"
-    ports:
-      - "${HTTP_PORT:-80}:80"
-      - "${HTTPS_PORT:-443}:443"
     volumes:
       - ./caddy_root:/usr/share/caddy
       - ./caddy_certs:/data/caddy/pki/authorities/local
-      - ./caddy/Caddyfile:/my_config/Caddyfile
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
       - caddy_config:/config
+    networks:
+      - caddy_net
+      - navidrome_internal_net
 
 volumes:
   caddy_data:

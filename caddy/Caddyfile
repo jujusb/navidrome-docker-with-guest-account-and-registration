@@ -1,7 +1,4 @@
-https://{$SERVER_ADDRESS} {
-	encode gzip
-	{$TLS_CONFIG}
-	
+:80 {	
 	# Block downloads for guest users before requests are proxied.
 	@guestDownload {
 		path /rest/download.view
