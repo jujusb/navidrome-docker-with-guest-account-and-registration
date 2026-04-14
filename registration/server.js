@@ -14,6 +14,7 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
 const DB_PATH = process.env.DB_PATH || "/data/navidrome.db";
 const SUBSONIC_CLIENT = process.env.ND_CLIENT_NAME || "registration";
 const SUBSONIC_VERSION = process.env.ND_API_VERSION || "1.16.1";
+const GUEST_EXPIRATION_HOURS = process.env.GUEST_EXPIRATION_HOURS ? parseFloat(process.env.GUEST_EXPIRATION_HOURS) : 24;
 
 function getRestBase(url) {
   const trimmed = (url || "").replace(/\/+$/, "");
@@ -116,6 +117,61 @@ async function createUser(username, password, role = "user") {
   }
 }
 
+async function removeUnusedGuestsMoreThanOneDay() {
+  try {
+    const token = await getAdminToken();
+    
+    const response = await axios.get(`${ND_BASE}/api/user`, {
+      headers: { "x-nd-authorization": `Bearer ${token}` },
+      validateStatus: () => true,
+    });
+    console.log("Fetched users for cleanup:", response);
+    if (response.status !== 200) {
+      console.error(`Failed to fetch users for cleanup: HTTP ${response.status}`);
+      console.error('Full response data:', data);
+      return;
+    }
+    
+    let data = null;
+    try { data = await response.data; } catch (_) {}
+    console.log("Fetched users for cleanup:", data);
+      if (!data) {
+        console.error('Failed to fetch users for cleanup: response.data is null or undefined');
+        if (response.request && response.request.res && response.request.res.responseUrl) {
+          console.error('Raw response URL:', response.request.res.responseUrl);
+        }
+        return;
+      }
+      if (!Array.isArray(data)) {
+        console.error('Failed to fetch users for cleanup: users array missing in response');
+        console.error('Full response data:', data);
+        return;
+      }
+
+    const guests = data
+      .filter(u => u.userName.startsWith("guest_"));
+    console.log(`Found ${guests.length} guest users, checking for old ones...`);
+    console.log("Guest users:", guests);
+    const oldGuests = guests
+      .filter(g => {
+        const createdAt = new Date(g.created);
+        const ageHours = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60);
+        return ageHours > GUEST_EXPIRATION_HOURS;
+      }
+    );
+    console.log(`Found ${oldGuests.length} old guest users, removing...`);
+    for (const guest of oldGuests) {
+      await axios.delete(`${ND_BASE}/api/user/${guest.id}`, {
+        headers: { "x-nd-authorization": `Bearer ${token}` },
+        validateStatus: () => true,
+      });
+      console.log(`Removed unused guest user: ${guest.userName}`);
+    }
+  } catch (e) {
+    console.error("Failed to remove unused guests:", e.response?.data || e.message);
+  }
+}
+
 async function createAdminInDB() {
   console.log("Starting admin bootstrap check...");
   const apiReady = await waitForApiReady();
@@ -163,6 +219,19 @@ async function ensureAdmin() {
   }
 }
 
+app.get('/guest', async (req, res) => {
+  await removeUnusedGuestsMoreThanOneDay();
+  const guestUserName = `guest_${Date.now()}`;
+  const guestPassword = Math.random().toString(36).slice(-8);
+  let result = await createUser(guestUserName, guestPassword, "user");
+  res.json({
+    success: result.ok,
+    username: guestUserName,
+    password: guestPassword,
+    error: result.error || null
+  });
+});
+
 // Self-registration endpoint
 app.post('/register', async (req, res) => {
   const { username, password } = req.body;
@@ -174,7 +243,11 @@ app.post('/register', async (req, res) => {
 
   const result = await createUser(username, password, "user");
   console.log(`Registration result for ${username}: ${result.ok ? 'success' : 'failed'}`);
-  res.json({ success: result.ok, user: username, error: result.error || null });
+  res.json({
+    success: result.ok,
+    user: username,
+    error: result.error || null
+  });
 });
 
 // Start the server

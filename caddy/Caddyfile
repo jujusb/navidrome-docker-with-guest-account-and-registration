@@ -19,6 +19,11 @@
 		reverse_proxy navidrome-registration:3000
 	}
 
+	@guestApi path /guest /guest/*
+	handle @guestApi {
+		reverse_proxy navidrome-registration:3000
+	}
+
 	# Explicit Navidrome routes.
 	handle /rest/* {
 		reverse_proxy navidrome:4533

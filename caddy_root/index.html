@@ -300,7 +300,17 @@
     document.getElementById('guestBtn').addEventListener('click', async () => {
       setStatus('ok', 'Logging in as guest...');
       try {
-        await login('guest', 'guest');
+        let res = await fetch('/guest', {
+          method: 'GET'
+        });
+
+        let data = null;
+        try { data = await res.json(); } catch (_) {}
+
+        if (!res.ok || !data || !data.success) {
+          throw new Error((data && data.error) || 'Guest login failed');
+        }
+        await login(data.username, data.password);
       } catch (err) {
         setStatus('error', 'Guest login failed. Use manual login below.');
         console.error(err);
