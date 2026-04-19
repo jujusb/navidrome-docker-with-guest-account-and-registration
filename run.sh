@@ -19,7 +19,7 @@ if [ "$MULTIPLE_CADDY_GLOBAL" = "true" ]; then
     export COMPOSE_FILE="docker-compose.yml:docker-compose.caddy.yml"
 else
     echo "Single global service → using local Caddyfile"
-    export COMPOSE_FILE="docker-compose.yml:docker-compose.root-caddy.yml:docker-compose.caddy.yml"
+    export COMPOSE_FILE="docker-compose.yml:docker-compose.caddy.yml:docker-compose.root-caddy.yml"
     if is_ip "$SERVER_ADDRESS"; then
         echo "Detected IP → using internal TLS"
         export TLS_CONFIG='tls internal'
