@@ -13,7 +13,7 @@ services:
       ND_API_URL: http://navidrome:4533/rest
       DB_PATH: /data/navidrome.db  # Path to database inside container
     volumes:
-      - "./docker/data:/data"      # Mount database volume
+      - "${DOCKER_DATA_PATH:-./docker/data}:/data"      # Mount database volume
     networks:
       - navidrome_internal_net
 
@@ -31,7 +31,7 @@ services:
       ND_MUSICFOLDER: /music
       ND_DATAFOLDER: /data
     volumes:
-      - "./docker/data:/data"
-      - "${MUSIC_DATA_PATH:-/home/ubuntu/music}:/music:ro"
+      - "${DOCKER_DATA_PATH:-./docker/data}:/data"
+      - "${MUSIC_DATA_PATH:-./music}:/music:ro"
     networks:
       - navidrome_internal_net
