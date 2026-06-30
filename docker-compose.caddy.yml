@@ -9,7 +9,7 @@ services:
     image: caddy:2
     restart: unless-stopped
     ports:
-      - "${NAVIDROME_CADDY_PORT:-80}:80"
+      - "${MUSIC_PORT:-80}:80"
     volumes:
       - ./caddy_root:/usr/share/caddy
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile
