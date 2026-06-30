@@ -5,7 +5,6 @@ networks:
 services:
   registration:
     build: ./registration
-    container_name: navidrome-registration
     restart: unless-stopped
     environment:
       ADMIN_USERNAME: ${ADMIN_USERNAME}
@@ -13,13 +12,12 @@ services:
       ND_API_URL: http://navidrome:4533/rest
       DB_PATH: /data/navidrome.db  # Path to database inside container
     volumes:
-      - "${DOCKER_DATA_PATH:-./docker/data}:/data"      # Mount database volume
+      - "${BASE_DATA_PATH:-./data}/navidrome:/data"      # Mount database volume
     networks:
       - navidrome_internal_net
 
   navidrome:
     image: deluan/navidrome:latest
-    container_name: navidrome
     restart: unless-stopped
     environment:
       ND_SCANSCHEDULE: ${ND_SCANSCHEDULE:-1h}
@@ -31,7 +29,7 @@ services:
       ND_MUSICFOLDER: /music
       ND_DATAFOLDER: /data
     volumes:
-      - "${DOCKER_DATA_PATH:-./docker/data}:/data"
-      - "${MUSIC_DATA_PATH:-./music}:/music:ro"
+      - "${BASE_DATA_PATH:-./data}/navidrome:/data"
+      - "${BASE_DATA_PATH:-./data}/music:/music:ro"
     networks:
       - navidrome_internal_net
