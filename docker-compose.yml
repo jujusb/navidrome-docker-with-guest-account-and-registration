@@ -6,6 +6,7 @@ services:
   registration:
     build: ./registration
     restart: unless-stopped
+    container_name: ${REGISTRATION_CONTAINER_NAME:-registration}
     environment:
       ADMIN_USERNAME: ${ADMIN_USERNAME}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
@@ -18,6 +19,7 @@ services:
 
   navidrome:
     image: deluan/navidrome:latest
+    container_name: ${NAVIDROME_CONTAINER_NAME:-navidrome}
     restart: unless-stopped
     environment:
       ND_SCANSCHEDULE: ${ND_SCANSCHEDULE:-1h}
@@ -25,11 +27,11 @@ services:
       ND_ENABLEEXTERNALSERVICES: ${ND_ENABLEEXTERNALSERVICES:-"false"}
       ND_ENABLEDOWNLOADS: ${ND_ENABLEDOWNLOADS:-true}
       ND_ENABLESHARING: ${ND_ENABLESHARING:-true}
-      ND_BASEURL: "https://${MUSIC_SERVER_ADDRESS:-}"  # Base URL for Caddy reverse proxy
+      #ND_BASEURL: "https://${MUSIC_SERVER_ADDRESS:-}"  # Base URL for Caddy reverse proxy
       ND_MUSICFOLDER: /music
       ND_DATAFOLDER: /data
     volumes:
       - "${BASE_DATA_PATH:-./data}/navidrome:/data"
-      - "${BASE_DATA_PATH:-./data}/music:/music:ro"
+      - "${BASE_DATA_PATH:-./data}/music:/library:ro"
     networks:
       - navidrome_internal_net

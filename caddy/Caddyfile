@@ -16,33 +16,33 @@
 
 	@registrationApi path /register /register/*
 	handle @registrationApi {
-		reverse_proxy navidrome-registration:3000
+		reverse_proxy {$REGISTRATION}:3000
 	}
 
 	@guestApi path /guest /guest/*
 	handle @guestApi {
-		reverse_proxy navidrome-registration:3000
+		reverse_proxy {$REGISTRATION}:3000
 	}
 
 	# Explicit Navidrome routes.
 	handle /rest/* {
-		reverse_proxy navidrome:4533
+		reverse_proxy {$NAVIDROME}:4533
 	}
 
 	handle /app/* {
-		reverse_proxy navidrome:4533
+		reverse_proxy {$NAVIDROME}:4533
 	}
 
 	handle /static/* {
-		reverse_proxy navidrome:4533
+		reverse_proxy {$NAVIDROME}:4533
 	}
 
 	handle /favicon.ico {
-		reverse_proxy navidrome:4533
+		reverse_proxy {$NAVIDROME}:4533
 	}
 
 	# Fallback for other Navidrome endpoints ("etc.").
 	handle {
-		reverse_proxy navidrome:4533
+		reverse_proxy {$NAVIDROME}:4533
 	}
 }
