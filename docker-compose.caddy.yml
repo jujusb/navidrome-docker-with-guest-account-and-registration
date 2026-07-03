@@ -1,17 +1,15 @@
 networks:
-  caddy_net:
-    external: true
   navidrome_internal_net:
-    external: true
+    driver: bridge
     
 services:
   caddy-navidrome:
     image: caddy:2
     restart: unless-stopped
-    container_name: ${CADDY_CONTAINER_NAME:-caddy-navidrome}
     environment:
-      - NAVIDROME=${NAVIDROME_CONTAINER_NAME:-navidrome}
-      - REGISTRATION=${REGISTRATION_CONTAINER_NAME:-registration}
+      - NAVIDROME=navidrome
+      - REGISTRATION=registration
+      - EMBEDDED_SERVER_ADDRESS=${EMBEDDED_SERVER_ADDRESS:-}
     ports:
       - "${MUSIC_PORT:-80}:80"
     volumes:
@@ -20,7 +18,6 @@ services:
       - caddy_data:/data
       - caddy_config:/config
     networks:
-      - caddy_net
       - navidrome_internal_net
 
 volumes:

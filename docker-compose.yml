@@ -1,25 +1,23 @@
 networks:
   navidrome_internal_net:
-    external: true
+    driver: bridge
     
 services:
   registration:
     build: ./registration
     restart: unless-stopped
-    container_name: ${REGISTRATION_CONTAINER_NAME:-registration}
     environment:
       ADMIN_USERNAME: ${ADMIN_USERNAME}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       ND_API_URL: http://navidrome:4533/rest
       DB_PATH: /data/navidrome.db  # Path to database inside container
     volumes:
-      - "${BASE_DATA_PATH:-./data}/navidrome:/data"      # Mount database volume
+      - "${BASE_DATA_PATH:-./data}/${NAVIDROME_DATA_SUBDIR:-navidrome}:/data"      # Mount database volume
     networks:
       - navidrome_internal_net
 
   navidrome:
     image: deluan/navidrome:latest
-    container_name: ${NAVIDROME_CONTAINER_NAME:-navidrome}
     restart: unless-stopped
     environment:
       ND_SCANSCHEDULE: ${ND_SCANSCHEDULE:-1h}
@@ -31,7 +29,8 @@ services:
       ND_MUSICFOLDER: /music
       ND_DATAFOLDER: /data
     volumes:
-      - "${BASE_DATA_PATH:-./data}/navidrome:/data"
-      - "${BASE_DATA_PATH:-./data}/music:/library:ro"
+      - "${BASE_DATA_PATH:-./data}/${NAVIDROME_DATA_SUBDIR:-navidrome}:/data"
+      - "${BASE_DATA_PATH:-./data}/music:/music:ro"
+      - "${BASE_DATA_PATH:-./data}/library:/library:ro"
     networks:
       - navidrome_internal_net
